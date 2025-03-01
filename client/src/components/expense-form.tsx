@@ -8,6 +8,11 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { CalendarIcon } from "lucide-react";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 
 interface ExpenseFormProps {
   expense?: Expense | null;
@@ -24,10 +29,12 @@ export function ExpenseForm({ expense, onSuccess }: ExpenseFormProps) {
       amount: Number(expense.amount),
       category: expense.category as InsertExpense["category"],
       description: expense.description || undefined,
+      date: new Date(expense.date),
     } : {
       amount: 0,
       category: "Other",
       description: "",
+      date: new Date(),
     },
   });
 
@@ -56,6 +63,18 @@ export function ExpenseForm({ expense, onSuccess }: ExpenseFormProps) {
     },
   });
 
+  const categories = [
+    "Food",
+    "Transportation",
+    "Entertainment",
+    "Utilities",
+    "Education",
+    "Health",
+    "Shopping",
+    "Saving & Investments",
+    "Other"
+  ] as const;
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit((data) => mutation.mutate(data))} className="space-y-6">
@@ -82,6 +101,48 @@ export function ExpenseForm({ expense, onSuccess }: ExpenseFormProps) {
 
         <FormField
           control={form.control}
+          name="date"
+          render={({ field }) => (
+            <FormItem className="flex flex-col">
+              <FormLabel>Date</FormLabel>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <FormControl>
+                    <Button
+                      variant={"outline"}
+                      className={cn(
+                        "w-full pl-3 text-left font-normal",
+                        !field.value && "text-muted-foreground"
+                      )}
+                    >
+                      {field.value ? (
+                        format(field.value, "PPP")
+                      ) : (
+                        <span>Pick a date</span>
+                      )}
+                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                    </Button>
+                  </FormControl>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={field.value}
+                    onSelect={field.onChange}
+                    disabled={(date) =>
+                      date > new Date() || date < new Date("1900-01-01")
+                    }
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
           name="category"
           render={({ field }) => (
             <FormItem>
@@ -93,7 +154,7 @@ export function ExpenseForm({ expense, onSuccess }: ExpenseFormProps) {
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {["Food", "Transportation", "Entertainment", "Utilities", "Other"].map((category) => (
+                  {categories.map((category) => (
                     <SelectItem key={category} value={category}>
                       {category}
                     </SelectItem>

@@ -48,7 +48,17 @@ export function ExpenseList({
     (expense) => !selectedCategory || expense.category === selectedCategory
   );
 
-  const categories = ["Food", "Transportation", "Entertainment", "Utilities", "Other"] as const;
+  const categories = [
+    "Food",
+    "Transportation",
+    "Entertainment",
+    "Utilities",
+    "Education",
+    "Health",
+    "Shopping",
+    "Saving & Investments",
+    "Other"
+  ] as const;
 
   if (isLoading) {
     return <div>Loading expenses...</div>;

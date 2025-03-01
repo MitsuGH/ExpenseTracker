@@ -19,9 +19,14 @@ export const insertExpenseSchema = createInsertSchema(expenses)
       "Transportation",
       "Entertainment",
       "Utilities",
+      "Education",
+      "Health",
+      "Shopping",
+      "Saving & Investments",
       "Other"
     ]),
     description: z.string().optional(),
+    date: z.date(),
   });
 
 export type InsertExpense = z.infer<typeof insertExpenseSchema>;
@@ -32,5 +37,9 @@ export const categoryColors = {
   Transportation: "#3F51B5",
   Entertainment: "#E91E63",
   Utilities: "#9C27B0",
+  Education: "#2196F3",
+  Health: "#4CAF50",
+  Shopping: "#FF9800",
+  "Saving & Investments": "#009688",
   Other: "#607D8B",
 };
