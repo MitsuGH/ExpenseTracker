@@ -17,10 +17,14 @@ interface ExpenseFormProps {
 export function ExpenseForm({ expense, onSuccess }: ExpenseFormProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  
+
   const form = useForm<InsertExpense>({
     resolver: zodResolver(insertExpenseSchema),
-    defaultValues: expense || {
+    defaultValues: expense ? {
+      amount: Number(expense.amount),
+      category: expense.category as InsertExpense["category"],
+      description: expense.description || undefined,
+    } : {
       amount: 0,
       category: "Other",
       description: "",
@@ -67,7 +71,8 @@ export function ExpenseForm({ expense, onSuccess }: ExpenseFormProps) {
                   step="0.01"
                   placeholder="Enter amount"
                   {...field}
-                  onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                  onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                  value={field.value || ""}
                 />
               </FormControl>
               <FormMessage />

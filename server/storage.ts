@@ -27,7 +27,13 @@ export class MemStorage implements IStorage {
 
   async createExpense(insertExpense: InsertExpense): Promise<Expense> {
     const id = this.currentId++;
-    const expense: Expense = { ...insertExpense, id };
+    const expense: Expense = {
+      id,
+      amount: insertExpense.amount.toString(), // Convert number to string for storage
+      category: insertExpense.category,
+      date: insertExpense.date || new Date(),
+      description: insertExpense.description || null,
+    };
     this.expenses.set(id, expense);
     return expense;
   }
@@ -36,7 +42,14 @@ export class MemStorage implements IStorage {
     const existing = this.expenses.get(id);
     if (!existing) return undefined;
 
-    const updated = { ...existing, ...updateData };
+    const updated: Expense = {
+      ...existing,
+      amount: updateData.amount ? updateData.amount.toString() : existing.amount,
+      category: updateData.category || existing.category,
+      date: updateData.date || existing.date,
+      description: updateData.description !== undefined ? updateData.description || null : existing.description,
+    };
+
     this.expenses.set(id, updated);
     return updated;
   }

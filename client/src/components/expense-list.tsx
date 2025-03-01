@@ -11,7 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { Edit2, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
@@ -48,11 +48,20 @@ export function ExpenseList({
     (expense) => !selectedCategory || expense.category === selectedCategory
   );
 
-  const categories = ["Food", "Transportation", "Entertainment", "Utilities", "Other"];
+  const categories = ["Food", "Transportation", "Entertainment", "Utilities", "Other"] as const;
 
   if (isLoading) {
     return <div>Loading expenses...</div>;
   }
+
+  const formatDate = (dateStr: string | Date) => {
+    try {
+      const date = typeof dateStr === 'string' ? parseISO(dateStr) : dateStr;
+      return format(date, "MMM d, yyyy");
+    } catch (error) {
+      return 'Invalid date';
+    }
+  };
 
   return (
     <div>
@@ -93,11 +102,11 @@ export function ExpenseList({
         <TableBody>
           {filteredExpenses?.map((expense) => (
             <TableRow key={expense.id}>
-              <TableCell>{format(new Date(expense.date), "MMM d, yyyy")}</TableCell>
+              <TableCell>{formatDate(expense.date)}</TableCell>
               <TableCell>
                 <Badge
                   style={{
-                    backgroundColor: categoryColors[expense.category],
+                    backgroundColor: categoryColors[expense.category as keyof typeof categoryColors],
                   }}
                 >
                   {expense.category}
