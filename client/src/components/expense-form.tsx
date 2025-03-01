@@ -29,12 +29,12 @@ export function ExpenseForm({ expense, onSuccess }: ExpenseFormProps) {
       amount: Number(expense.amount),
       category: expense.category as InsertExpense["category"],
       description: expense.description || undefined,
-      date: new Date(expense.date),
+      date: format(new Date(expense.date), "yyyy-MM-dd'T'HH:mm:ss'Z'"),
     } : {
       amount: 0,
       category: "Other",
       description: "",
-      date: new Date(),
+      date: format(new Date(), "yyyy-MM-dd'T'HH:mm:ss'Z'"),
     },
   });
 
@@ -54,7 +54,8 @@ export function ExpenseForm({ expense, onSuccess }: ExpenseFormProps) {
         description: "Your expense has been saved successfully.",
       });
     },
-    onError: () => {
+    onError: (error) => {
+      console.error('Form submission error:', error);
       toast({
         title: "Error",
         description: "Failed to save expense. Please try again.",
@@ -77,7 +78,14 @@ export function ExpenseForm({ expense, onSuccess }: ExpenseFormProps) {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit((data) => mutation.mutate(data))} className="space-y-6">
+      <form onSubmit={form.handleSubmit((data) => {
+        // Ensure date is in ISO string format
+        const formattedData = {
+          ...data,
+          date: new Date(data.date).toISOString(),
+        };
+        mutation.mutate(formattedData);
+      })} className="space-y-6">
         <FormField
           control={form.control}
           name="amount"
@@ -116,7 +124,7 @@ export function ExpenseForm({ expense, onSuccess }: ExpenseFormProps) {
                       )}
                     >
                       {field.value ? (
-                        format(field.value, "PPP")
+                        format(new Date(field.value), "PPP")
                       ) : (
                         <span>Pick a date</span>
                       )}
@@ -127,8 +135,8 @@ export function ExpenseForm({ expense, onSuccess }: ExpenseFormProps) {
                 <PopoverContent className="w-auto p-0" align="start">
                   <Calendar
                     mode="single"
-                    selected={field.value}
-                    onSelect={field.onChange}
+                    selected={new Date(field.value)}
+                    onSelect={(date) => field.onChange(date?.toISOString())}
                     disabled={(date) =>
                       date > new Date() || date < new Date("1900-01-01")
                     }

@@ -10,10 +10,11 @@ export const expenses = pgTable("expenses", {
   description: text("description"),
 });
 
+// Define a schema for InsertExpense to ensure proper structure and type safety
 export const insertExpenseSchema = createInsertSchema(expenses)
   .omit({ id: true })
   .extend({
-    amount: z.number().positive(),
+    amount: z.number().positive("Amount must be greater than 0"),
     category: z.enum([
       "Food",
       "Transportation",
@@ -26,7 +27,7 @@ export const insertExpenseSchema = createInsertSchema(expenses)
       "Other"
     ]),
     description: z.string().optional(),
-    date: z.date(),
+    date: z.string(),  // Changed to string since we'll send ISO string
   });
 
 export type InsertExpense = z.infer<typeof insertExpenseSchema>;
