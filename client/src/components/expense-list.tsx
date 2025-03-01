@@ -19,12 +19,14 @@ interface ExpenseListProps {
   selectedCategory: string | null;
   onCategoryChange: (category: string | null) => void;
   onEdit: (expense: Expense) => void;
+  onDelete?: () => void;  // New prop for delete notification
 }
 
 export function ExpenseList({
   selectedCategory,
   onCategoryChange,
   onEdit,
+  onDelete,
 }: ExpenseListProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -41,6 +43,7 @@ export function ExpenseList({
         title: "Expense deleted",
         description: "The expense has been removed successfully.",
       });
+      onDelete?.();  // Notify parent about deletion
     },
   });
 
