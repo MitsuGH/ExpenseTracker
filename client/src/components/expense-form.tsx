@@ -29,12 +29,12 @@ export function ExpenseForm({ expense, onSuccess }: ExpenseFormProps) {
       amount: Number(expense.amount),
       category: expense.category as InsertExpense["category"],
       description: expense.description || undefined,
-      date: format(new Date(expense.date), "yyyy-MM-dd'T'HH:mm:ss'Z'"),
+      date: format(new Date(expense.date), "yyyy-MM-dd'T'HH:mm:ss"),
     } : {
       amount: 0,
       category: "Other",
       description: "",
-      date: format(new Date(), "yyyy-MM-dd'T'HH:mm:ss'Z'"),
+      date: format(new Date(), "yyyy-MM-dd'T'HH:mm:ss"),
     },
   });
 
@@ -79,7 +79,7 @@ export function ExpenseForm({ expense, onSuccess }: ExpenseFormProps) {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit((data) => {
-        // Ensure date is in ISO string format
+        // Ensure date is in ISO string format but preserve local time
         const formattedData = {
           ...data,
           date: new Date(data.date).toISOString(),
@@ -136,7 +136,12 @@ export function ExpenseForm({ expense, onSuccess }: ExpenseFormProps) {
                   <Calendar
                     mode="single"
                     selected={new Date(field.value)}
-                    onSelect={(date) => field.onChange(date?.toISOString())}
+                    onSelect={(date) => {
+                      if (date) {
+                        const localDate = new Date(date.setHours(12, 0, 0, 0));
+                        field.onChange(format(localDate, "yyyy-MM-dd'T'HH:mm:ss"));
+                      }
+                    }}
                     disabled={(date) =>
                       date > new Date() || date < new Date("1900-01-01")
                     }
@@ -155,7 +160,7 @@ export function ExpenseForm({ expense, onSuccess }: ExpenseFormProps) {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Category</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <Select value={field.value} onValueChange={field.onChange}>
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Select a category" />
