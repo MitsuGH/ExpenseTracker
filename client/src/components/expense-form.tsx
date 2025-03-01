@@ -27,7 +27,6 @@ export function ExpenseForm({ expense, onSuccess }: ExpenseFormProps) {
     resolver: zodResolver(insertExpenseSchema),
     defaultValues: expense ? {
       amount: Number(expense.amount),
-      category: expense.category as InsertExpense["category"],
       description: expense.description || undefined,
       date: format(new Date(expense.date), "yyyy-MM-dd'T'HH:mm:ss"),
     } : {
@@ -160,7 +159,7 @@ export function ExpenseForm({ expense, onSuccess }: ExpenseFormProps) {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Category</FormLabel>
-              <Select value={field.value} onValueChange={field.onChange}>
+              <Select onValueChange={field.onChange}>
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Select a category" />
