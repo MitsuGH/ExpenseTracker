@@ -29,6 +29,7 @@ export function ExpenseForm({ expense, onSuccess }: ExpenseFormProps) {
       amount: Number(expense.amount),
       description: expense.description || undefined,
       date: format(new Date(expense.date), "yyyy-MM-dd'T'HH:mm:ss"),
+      category: expense.category as InsertExpense["category"],
     } : {
       amount: 0,
       category: "Other",
@@ -159,7 +160,7 @@ export function ExpenseForm({ expense, onSuccess }: ExpenseFormProps) {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Category</FormLabel>
-              <Select onValueChange={field.onChange}>
+              <Select value={field.value} onValueChange={field.onChange}>
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Select a category" />
