@@ -1,4 +1,6 @@
 import { expenses, type Expense, type InsertExpense } from "@shared/schema";
+import { db } from "./db";
+import { eq } from "drizzle-orm";
 
 export interface IStorage {
   getExpenses(): Promise<Expense[]>;
@@ -8,55 +10,50 @@ export interface IStorage {
   deleteExpense(id: number): Promise<boolean>;
 }
 
-export class MemStorage implements IStorage {
-  private expenses: Map<number, Expense>;
-  private currentId: number;
-
-  constructor() {
-    this.expenses = new Map();
-    this.currentId = 1;
-  }
-
+export class DatabaseStorage implements IStorage {
   async getExpenses(): Promise<Expense[]> {
-    return Array.from(this.expenses.values());
+    return await db.select().from(expenses);
   }
 
   async getExpenseById(id: number): Promise<Expense | undefined> {
-    return this.expenses.get(id);
+    const [expense] = await db.select().from(expenses).where(eq(expenses.id, id));
+    return expense;
   }
 
   async createExpense(insertExpense: InsertExpense): Promise<Expense> {
-    const id = this.currentId++;
-    const expense: Expense = {
-      id,
-      amount: insertExpense.amount.toString(), // Convert number to string for storage
-      category: insertExpense.category,
-      date: insertExpense.date || new Date(),
-      description: insertExpense.description || null,
-    };
-    this.expenses.set(id, expense);
+    const [expense] = await db
+      .insert(expenses)
+      .values({
+        amount: insertExpense.amount.toString(),
+        category: insertExpense.category,
+        date: new Date(insertExpense.date),
+        description: insertExpense.description || null,
+      })
+      .returning();
     return expense;
   }
 
   async updateExpense(id: number, updateData: Partial<InsertExpense>): Promise<Expense | undefined> {
-    const existing = this.expenses.get(id);
-    if (!existing) return undefined;
-
-    const updated: Expense = {
-      ...existing,
-      amount: updateData.amount ? updateData.amount.toString() : existing.amount,
-      category: updateData.category || existing.category,
-      date: updateData.date || existing.date,
-      description: updateData.description !== undefined ? updateData.description || null : existing.description,
-    };
-
-    this.expenses.set(id, updated);
+    const [updated] = await db
+      .update(expenses)
+      .set({
+        amount: updateData.amount ? updateData.amount.toString() : undefined,
+        category: updateData.category,
+        date: updateData.date ? new Date(updateData.date) : undefined,
+        description: updateData.description !== undefined ? updateData.description || null : undefined,
+      })
+      .where(eq(expenses.id, id))
+      .returning();
     return updated;
   }
 
   async deleteExpense(id: number): Promise<boolean> {
-    return this.expenses.delete(id);
+    const [deleted] = await db
+      .delete(expenses)
+      .where(eq(expenses.id, id))
+      .returning();
+    return !!deleted;
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();
