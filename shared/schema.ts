@@ -1,16 +1,34 @@
-import { pgTable, text, serial, numeric, timestamp, boolean } from "drizzle-orm/pg-core";
+import { mysqlTable, varchar, decimal, date, bigint, timestamp } from 'drizzle-orm/mysql-core';
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-export const expenses = pgTable("expenses", {
-  id: serial("id").primaryKey(),
-  amount: numeric("amount").notNull(),
-  category: text("category").notNull(),
-  date: timestamp("date").notNull().defaultNow(),
-  description: text("description"),
+export const users = mysqlTable('users', {
+  id: bigint('id', { mode: 'number' }).primaryKey().autoincrement(),
+  username: varchar('username', { length: 50 }).notNull().unique(),
+  email: varchar('email', { length: 100 }).notNull().unique(),
+  password: varchar('password', { length: 255 }).notNull(),
+  createdAt: timestamp('created_at').defaultNow(),
 });
 
-// Define a schema for InsertExpense to ensure proper structure and type safety
+export const categories = mysqlTable('categories', {
+  id: bigint('id', { mode: 'number' }).primaryKey().autoincrement(), // ✅ Changed to BIGINT
+  name: varchar('name', { length: 50 }).notNull(),
+  userId: bigint('user_id', { mode: 'number' }).references(() => users.id),
+});
+
+export const expenses = mysqlTable('expenses', {
+  id: bigint('id', { mode: 'number' }).primaryKey().autoincrement(),
+  amount: decimal('amount', { precision: 10, scale: 2 }).notNull(),
+  description: varchar('description', { length: 255 }),
+  categoryId: bigint('category_id', { mode: 'number' }).references(() => categories.id, {
+    onDelete: "no action",
+    onUpdate: "no action",
+  }), // ✅ Ensured it's BIGINT
+  userId: bigint('user_id', { mode: 'number' }).references(() => users.id),
+  date: date('date').notNull(),
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
 export const insertExpenseSchema = createInsertSchema(expenses)
   .omit({ id: true })
   .extend({
